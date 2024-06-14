@@ -67,7 +67,7 @@ export default {
             }
 
             const target = new URL(pathname, BaseURL);
-            request = new Request(target, request);
+            request = new Request(target, request); // 直接传递请求，保持缓存控制头，部分下载头等功能
             request.headers.set('host', target.host);
 
             while (env.GithubUser && env.GithubToken) { // 对指定用户/仓库开启 Github 认证
@@ -90,7 +90,7 @@ export default {
                 break;
             }
 
-            return await fetch(request);
+            return await fetch(request); // 直接传递响应，保持缓存控制头，部分下载头等功能
         }
 
         // 伪装首页
