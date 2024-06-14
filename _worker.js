@@ -1,39 +1,73 @@
+
+
+let AuthTable = {
+    "user1": "token",
+    "user2/repo1": "token",
+};
+
+
+function getToken(pathname, src) {
+    let table = AuthTable;
+    if (src && (!table || !table.$Lock)) {
+        const regex = /([-\w]{1,32}(?:\/[-\w]{1,32})?)@([-\w]{1,64})(?:;|$)/g;
+        table = src.startsWith(':') ? {} : (table || {});
+        for (const match of src.matchAll(regex)) {
+            table.$NoEmpty || (table.$NoEmpty = true);
+            table[match[1]] = match[2];
+        }
+        table.$Lock = true;
+        AuthTable = table;
+    }
+
+    if (!table.$NoEmpty) return;
+
+    const regex = /^(([-\w]{1,32})(?:\/[-\w]{1,32})?)(?:\/|$)/;
+    const match = pathname.match(regex);
+
+    if (!match) return;
+
+    if (table[match[1]]) return table[match[1]];
+
+    return table[match[2]];
+}
+
+
 const BaseURL = 'https://raw.githubusercontent.com';
+const Welcome = `<!DOCTYPE html>
+<html>
+<head>
+<title>Welcome to nginx!</title>
+<style>
+html { color-scheme: light dark; }
+body { width: 35em; margin: 0 auto;
+font-family: Tahoma, Verdana, Arial, sans-serif; }
+</style>
+</head>
+<body>
+<h1>Welcome to nginx!</h1>
+<p>If you see this page, the nginx web server is successfully installed and
+working. Further configuration is required.</p>
+
+<p>For online documentation and support please refer to
+<a href="http://nginx.org/">nginx.org</a>.<br/>
+Commercial support is available at
+<a href="http://nginx.com/">nginx.com</a>.</p>
+
+<p><em>Thank you for using nginx.</em></p>
+</body>
+</html>
+`;
+
+const ETag = btoa('HelloNginx');
 
 function respNginx(request) {
-    const Welcome = `<!DOCTYPE html>
-    <html>
-    <head>
-    <title>Welcome to nginx!</title>
-    <style>
-    html { color-scheme: light dark; }
-    body { width: 35em; margin: 0 auto;
-    font-family: Tahoma, Verdana, Arial, sans-serif; }
-    </style>
-    </head>
-    <body>
-    <h1>Welcome to nginx!</h1>
-    <p>If you see this page, the nginx web server is successfully installed and
-    working. Further configuration is required.</p>
-
-    <p>For online documentation and support please refer to
-    <a href="http://nginx.org/">nginx.org</a>.<br/>
-    Commercial support is available at
-    <a href="http://nginx.com/">nginx.com</a>.</p>
-
-    <p><em>Thank you for using nginx.</em></p>
-    </body>
-    </html>
-    `;
-
-    const etag = 'HelloNginx'
-    if (request.headers.get('if-none-match') === etag)
+    if (request.headers.get('if-none-match') === ETag)
         return new Response(null, { status: 304 });
     return new Response(Welcome, {
         headers: {
             'content-type': 'text/html;charset=utf-8',
             'cache-control': 'max-age=86400', // 强制缓存
-            'etag': etag, // 协商缓存
+            'etag': ETag, // 协商缓存
         },
     });
 }
@@ -42,18 +76,6 @@ function trimStartSlashs(src, offset = 0) {
     // const slashRegex = /^\/+/; 正则开销大
     for (; offset < src.length && src[offset] === '/'; offset++);
     return src.substring(offset);
-}
-
-function convertToArray(src) {
-    if (src instanceof Array) return src.filter(s => !s);
-    if (typeof src === 'string') {
-        src = src.replace(/^\s*\[|\]\s*$/g, '').split(/[,;"'|\s\t\r\n]+/);
-        let n = 0;
-        for (let i = n; i < src.length; i++)
-            if (src[i] !== '') src[n++] = src[i];
-        return src.slice(0, n);
-    }
-    return [];
 }
 
 export default {
@@ -76,27 +98,9 @@ export default {
             request = new Request(target, request); // 直接传递请求，保持缓存控制头，部分下载头等功能
             request.headers.set('host', target.host);
 
-            while (env.GithubUser && env.GithubToken) { // 对指定用户/仓库开启 Github 认证
-                let checkname, idx;
-
-                checkname = (idx = pathname.indexOf('/')) >= 0 ? pathname.substring(0, idx) : pathname;
-                if (checkname !== env.GithubUser)  // 检查用户
-                    break;
-
-                idx >= 0 && (pathname = trimStartSlashs(pathname, idx + 1));
-
-                if (env.GithubRepos) { // 检查仓库
-                    checkname = (idx = pathname.indexOf('/')) >= 0 ? pathname.substring(0, idx) : pathname;
-                    if (!checkname)
-                        break;
-
-                    const repos = env.GithubRepos ? convertToArray(env.GithubRepos) : [];
-                    if (repos.length > 0 && !repos.includes(checkname))
-                        break;
-                }
-
-                request.headers.set('authorization', `token ${env.GithubToken}`);
-                break;
+            token = getToken(pathname, env.AuthTable);
+            if (token) {
+                request.headers.set('authorization', `token ${token}`);
             }
 
             return await fetch(request); // 直接传递响应，保持缓存控制头，部分下载头等功能
