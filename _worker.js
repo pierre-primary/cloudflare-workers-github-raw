@@ -45,8 +45,14 @@ function trimStartSlashs(src, offset = 0) {
 }
 
 function convertToArray(src) {
-    if (src instanceof Array) return src;
-    if (typeof src === 'string') return src.replace(/^\s*\[|\]\s*$/g, '').split(/[,;"'|\s\t\r\n]+/);
+    if (src instanceof Array) return src.filter(s => !s);
+    if (typeof src === 'string') {
+        src = src.replace(/^\s*\[|\]\s*$/g, '').split(/[,;"'|\s\t\r\n]+/);
+        let n = 0;
+        for (let i = n; i < src.length; i++)
+            if (src[i] !== '') src[n++] = src[i];
+        return src.slice(0, n);
+    }
     return [];
 }
 
