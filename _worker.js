@@ -46,7 +46,7 @@ function trimStartSlashs(src, offset = 0) {
 
 function convertToArray(src) {
     if (src instanceof Array) return src;
-    if (typeof src === 'string') return src.split(/[,;|\s\t\r\n]+/);
+    if (typeof src === 'string') return src.replace(/^\s*\[|\]\s*$/g, '').split(/[,;"|\s\t\r\n]+/);
     return [];
 }
 
@@ -81,6 +81,9 @@ export default {
 
                 if (env.GithubRepos) { // 检查仓库
                     checkname = (idx = pathname.indexOf('/')) >= 0 ? pathname.substring(0, idx) : pathname;
+                    if (!checkname)
+                        break;
+
                     const repos = env.GithubRepos ? convertToArray(env.GithubRepos) : [];
                     if (repos.length > 0 && !repos.includes(checkname))
                         break;
