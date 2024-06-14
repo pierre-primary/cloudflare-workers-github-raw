@@ -35,23 +35,11 @@ Commercial support is available at
 `;
 
 
-function chooseUrl(urls) {
-    urls = urls.split(',');
-    switch (urls.length) {
-        case 0:
-            return '';
-        case 1:
-            return urls[0];
-        default:
-            return urls[Math.floor(Math.random() * urls.length)];
-    }
-}
-
 
 export default {
     /**
      * @param {Request} request 请求
-     * @param {ReadonlyMap<string, string>} env 环境变量注入
+     * @param {Record<string, string>} env 环境变量注入
      * @returns
      */
     async fetch(request, env) {
@@ -61,12 +49,16 @@ export default {
         let path = url.pathname.replace(slashRegex, '');
 
         if (!path) {
-            if (env.HomeUrls) {
-                switch (env.HomeMode) {
-                    case 'redirect':
-                        return Response.redirect(chooseUrl(env.HomeUrls), 302);
-                    case 'rewrite':
-                        return fetch(chooseUrl(env.HomeUrls));
+            if (env.HomePage) {
+                try {
+                    switch (env.HomeMode) {
+                        case 'redirect':
+                            return Response.redirect(env.HomePage, 302);
+                        case 'rewrite':
+                            return await fetch(env.HomePage);
+                    }
+                } catch {
+                    return new Response("Internal Server Error", { status: 500 });
                 }
             }
 
@@ -77,7 +69,7 @@ export default {
                 headers: {
                     'content-type': 'text/html;charset=utf-8',
                     'cache-control': 'max-age=86400',
-                    'etag': 'HelloNginx',
+                    'etag': 'HelloNginx', // 协商缓存
                 },
             });
         }
@@ -112,6 +104,6 @@ export default {
             request.headers.set('authorization', `token ${tok}`);
         }
 
-        return fetch(request);
+        return await fetch(request)
     },
 };
