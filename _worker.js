@@ -1,5 +1,5 @@
 
-// 多用户 (仓库) 独立 Token 认证
+// 多用户 (仓库) 独立 Token 认证表；不建议在此修改
 let AuthTable = {
     "user1": "token",
     "user2/repo1": "token",
