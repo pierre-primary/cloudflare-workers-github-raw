@@ -1,5 +1,5 @@
 
-
+// 多用户 (仓库) 独立 Token 认证
 let AuthTable = {
     "user1": "token",
     "user2/repo1": "token",
@@ -72,12 +72,6 @@ function respNginx(request) {
     });
 }
 
-function trimStartSlashs(src, offset = 0) {
-    // const slashRegex = /^\/+/; 正则开销大
-    for (; offset < src.length && src[offset] === '/'; offset++);
-    return src.substring(offset);
-}
-
 export default {
     /**
      * @param {Request} request 请求
@@ -87,7 +81,7 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        let pathname = trimStartSlashs(url.pathname);
+        let pathname = url.pathname.replace(/^\/+/, '');
         if (pathname) {
             let token = url.searchParams.get('token');
             if (env.Token && env.Token !== token) {
@@ -98,7 +92,7 @@ export default {
             request = new Request(target, request); // 直接传递请求，保持缓存控制头，部分下载头等功能
             request.headers.set('host', target.host);
 
-            token = getToken(pathname, env.AuthTable);
+            token = getToken(pathname, env.AuthTable); // 独立 Token 认证
             if (token) {
                 request.headers.set('authorization', `token ${token}`);
             }
