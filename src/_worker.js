@@ -5,7 +5,7 @@
  * @link：https://github.com/pierre-primary/cloudflare-workers-github-raw
  */
 
-let PathPrefix = '';            // 路径前缀；用于限定指定账户或仓库的访问
+let PathPrefix = '';            // 路径前缀；用于限定指定账户（如 pierre-primary）或仓库（如 pierre-primary/cloudflare-workers-github-raw）的访问;
 let Token = '';                 // 本站令牌；提示：推荐使用 Workers 的环境变量
 let GithubToken = '';           // GitHub 令牌；提示：设置后不要提交到仓库 ！！！；同上
 
@@ -34,6 +34,19 @@ Commercial support is available at
 </html>
 `;
 
+
+function chooseUrl(urls = []) {
+    switch (urls.length) {
+        case 0:
+            return '';
+        case 1:
+            return urls[0];
+        default:
+            return urls[Math.floor(Math.random() * urls.length)];
+    }
+}
+
+
 export default {
     /**
      * @param {Request} request 请求
@@ -47,13 +60,23 @@ export default {
         let path = url.pathname.replace(slashRegex, '');
 
         if (!path) {
-            if (request.headers.has('if-modified-since')) return new Response(null, { status: 304 });
+            if (env.HomeUrls) {
+                switch (env.HomeMode) {
+                    case 'redirect':
+                        return Response.redirect(chooseUrl(env.HomeUrls), 302);
+                    case 'rewrite':
+                        return fetch(chooseUrl(env.HomeUrls));
+                }
+            }
+
+            if (request.headers.get('if-none-match') === "HelloNginx")
+                return new Response(null, { status: 304 });
 
             return new Response(welcome, {
                 headers: {
                     'content-type': 'text/html;charset=utf-8',
                     'cache-control': 'max-age=86400',
-                    'last-modified': new Date().toUTCString(),
+                    'etag': 'HelloNginx',
                 },
             });
         }
