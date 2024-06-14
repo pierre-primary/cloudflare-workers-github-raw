@@ -5,7 +5,7 @@
 
 | 环境变量名 | 可选值                         | 说明                | 示例                                                 |
 | ---------- | ------------------------------ | ------------------- | ---------------------------------------------------- |
-| Token      |                                | 密钥                | "666666"                                             |
+| Token      |                                | 口令                | "666666"                                             |
 | AuthTable  |                                | 授权表              | "user1@token1;user2/repo1@token2;user2/repo2@token3" |
 | HomeMode   | default<br>rewrite<br>redirect | 主页伪装模式        | "default"                                            |
 | HomePage   |                                | 主页 (必须带协议头) | "https://www.baidu.com"                              |

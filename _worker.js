@@ -1,22 +1,23 @@
 
 // 多用户 (仓库) 独立 Token 认证表；不建议在此修改
-let AuthTable = {
-    "user1": "token",
-    "user2/repo1": "token",
-};
+let AuthTable; // { "user1": "token", "user2/repo1": "token", $NoEmpty: true };
 
 
 function getToken(pathname, src) {
     let table = AuthTable;
-    if (src && (!table || !table.$Lock)) {
-        const regex = /([-\w]{1,32}(?:\/[-\w]{1,32})?)@([-\w]{1,64})(?:;|$)/g;
-        table = src.startsWith(':') ? {} : (table || {});
-        for (const match of src.matchAll(regex)) {
-            table.$NoEmpty || (table.$NoEmpty = true);
-            table[match[1]] = match[2];
+    if (!table || !table.$Lock) {
+        if (src) {
+            const regex = /([-\w]{1,32}(?:\/[-\w]{1,32})?)@([-\w]{1,64})(?:;|$)/g;
+            table = src.startsWith(':') ? {} : table || {};
+            for (const match of src.matchAll(regex)) {
+                table.$NoEmpty || (table.$NoEmpty = true);
+                table[match[1]] = match[2];
+            }
+            table.$Lock = true;
+            AuthTable = table;
+        } else {
+            AuthTable = table = { $Lock: true };
         }
-        table.$Lock = true;
-        AuthTable = table;
     }
 
     if (!table.$NoEmpty) return;
