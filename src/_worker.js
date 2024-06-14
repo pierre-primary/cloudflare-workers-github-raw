@@ -1,10 +1,3 @@
-/**
- * @description：GitHub Raw Rewrite in Cloudflare Workers
- * @author：Pierre Jiang
- * @home：https://github.com/pierre-primary
- * @link：https://github.com/pierre-primary/cloudflare-workers-github-raw
- */
-
 const Host = 'raw.githubusercontent.com';
 
 const Welcome = `<!DOCTYPE html>
@@ -42,58 +35,53 @@ export default {
         const url = new URL(request.url);
 
         const slashRegex = /^\/+/;
+
         let pathname = url.pathname.replace(slashRegex, '');
+        if (pathname) {
+            let token = url.searchParams.get('token');
+            if (env.Token && env.Token !== token) {
+                return new Response('Unauthorized', { status: 401 });
+            }
 
-        if (!pathname) {
-            if (env.HomePage) {
-                try {
-                    switch (env.HomeMode) {
-                        case 'redirect':
-                            return Response.redirect(env.HomePage, 302);
-                        case 'rewrite':
-                            return await fetch(env.HomePage);
-                    }
-                } catch {
-                    return new Response('Internal Server Error', { status: 500 });
+            if (URL.canParse(pathname)) { // 完整路径；
+                const target = new URL(pathname);
+                if (target.protocol !== 'https:' || target.host !== Host) { // 非 Github 域名；禁止访问
+                    return new Response('Forbidden ', { status: 403 });
                 }
+                pathname = target.pathname.replace(slashRegex, '');
             }
 
-            if (request.headers.get('if-none-match') === 'HelloNginx') return new Response(null, { status: 304 });
+            request = new Request(`https://${Host}/${pathname}`, request);
+            request.headers.set('host', Host);
 
-            return new Response(Welcome, {
-                headers: {
-                    'content-type': 'text/html;charset=utf-8',
-                    'cache-control': 'max-age=86400', // 强制缓存
-                    'etag': 'HelloNginx', // 协商缓存
-                },
-            });
+            if (env.GithubUser && env.GithubToken && pathname.startsWith(env.GithubUser)) // Github 认证
+                request.headers.set('authorization', `token ${env.GithubToken}`);
+
+            return await fetch(request);
         }
 
-        let token = url.searchParams.get('token') || null;
-        if (token === (env.Token || null)) {
-            token = env.GithubToken;
-        }
-
-        if (URL.canParse(pathname)) { // 完整路径；严格匹配
-            const target = new URL(pathname);
-            if (target.host !== Host) {
-                return new Response('Not Found', { status: 404 });
+        // 伪装首页
+        if (env.HomePage) try {
+            switch (env.HomeMode) {
+                case 'redirect':
+                    return Response.redirect(env.HomePage, 302);
+                case 'rewrite':
+                    return await fetch(env.HomePage);
             }
-            pathname = target.pathname.replace(slashRegex, '');
-            if (env.PathPrefix && !path.startsWith(env.PathPrefix)) {
-                return new Response('Not Found', { status: 404 });
-            }
-        } else if (env.PathPrefix && !path.startsWith(env.PathPrefix)) { // 非完整路径；自动补全
-            pathname = `${env.PathPrefix}/${pathname}`;
+        } catch {
+            return new Response('Internal Server Error', { status: 500 });
         }
 
-        request = new Request(`https://${Host}/${pathname}`, request);
-        request.headers.set('host', Host);
-
-        if (token) {
-            request.headers.set('authorization', `token ${token}`);
-        }
-
-        return await fetch(request);
+        // 默认首页
+        const etag = 'HelloNginx'
+        if (request.headers.get('if-none-match') === etag)
+            return new Response(null, { status: 304 });
+        return new Response(Welcome, {
+            headers: {
+                'content-type': 'text/html;charset=utf-8',
+                'cache-control': 'max-age=86400', // 强制缓存
+                'etag': etag, // 协商缓存
+            },
+        });
     },
 };
