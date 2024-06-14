@@ -5,7 +5,7 @@
  * @link：https://github.com/pierre-primary/cloudflare-workers-github-raw
  */
 
-let PathPrefix = '';    // 路径前缀；用于限定指定账户（如 pierre-primary）或仓库（如 pierre-primary/cloudflare-workers-github-raw）的访问;
+let PathPrefix = '';    // 路径前缀；用于限定指定账户或仓库
 let Token = '';         // 本站令牌；提示：推荐使用 Workers 的环境变量
 let GithubToken = '';   // GitHub 令牌；提示：设置后不要提交到仓库 ！！！；同上
 
