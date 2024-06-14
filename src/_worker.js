@@ -5,11 +5,9 @@
  * @link：https://github.com/pierre-primary/cloudflare-workers-github-raw
  */
 
-let PathPrefix = '';    // 路径前缀；用于限定指定账户或仓库
-let Token = '';         // 本站令牌；提示：推荐使用 Workers 的环境变量
-let GithubToken = '';   // GitHub 令牌；提示：设置后不要提交到仓库 ！！！；同上
+const Host = 'raw.githubusercontent.com';
 
-const welcome = `<!DOCTYPE html>
+const Welcome = `<!DOCTYPE html>
 <html>
 <head>
 <title>Welcome to nginx!</title>
@@ -37,16 +35,16 @@ Commercial support is available at
 export default {
     /**
      * @param {Request} request 请求
-     * @param {Record<string, string>} env 环境变量注入
+     * @param {Record<string, any>} env 环境变量注入
      * @returns
      */
     async fetch(request, env) {
         const url = new URL(request.url);
 
         const slashRegex = /^\/+/;
-        let path = url.pathname.replace(slashRegex, '');
+        let pathname = url.pathname.replace(slashRegex, '');
 
-        if (!path) {
+        if (!pathname) {
             if (env.HomePage) {
                 try {
                     switch (env.HomeMode) {
@@ -62,43 +60,38 @@ export default {
 
             if (request.headers.get('if-none-match') === 'HelloNginx') return new Response(null, { status: 304 });
 
-            return new Response(welcome, {
+            return new Response(Welcome, {
                 headers: {
                     'content-type': 'text/html;charset=utf-8',
-                    'cache-control': 'max-age=86400',
+                    'cache-control': 'max-age=86400', // 强制缓存
                     'etag': 'HelloNginx', // 协商缓存
                 },
             });
         }
 
-        const baseUrl = 'https://raw.githubusercontent.com';
-        if (path.startsWith(`${baseUrl}/`)) {
-            path = path.substring(baseUrl.length).replace(slashRegex, '');
+        let token = url.searchParams.get('token') || null;
+        if (token === (env.Token || null)) {
+            token = env.GithubToken;
         }
 
-        let target = baseUrl;
-        PathPrefix = env.PathPrefix || PathPrefix;
-        if (PathPrefix) {
-            let segments = PathPrefix.split('/');
-            for (let i = 0; i < segments.length; i++) {
-                if (!segments[i]) continue;
-                if (!path.startsWith(`${segments[i]}/`)) break;
-                path = path.substring(segments[i].length).replace(slashRegex, '');
+        if (URL.canParse(pathname)) { // 完整路径；严格匹配
+            const target = new URL(pathname);
+            if (target.host !== Host) {
+                return new Response('Not Found', { status: 404 });
             }
-            target = `${target}/${PathPrefix}/${path}`;
-        } else {
-            target = `${target}/${path}`;
+            pathname = target.pathname.replace(slashRegex, '');
+            if (env.PathPrefix && !path.startsWith(env.PathPrefix)) {
+                return new Response('Not Found', { status: 404 });
+            }
+        } else if (env.PathPrefix && !path.startsWith(env.PathPrefix)) { // 非完整路径；自动补全
+            pathname = `${env.PathPrefix}/${pathname}`;
         }
 
-        let tok = url.searchParams.get('token');
-        Token = env.Token || Token;
-        if ((tok || null) === (Token || null)) {
-            tok = env.GithubToken || GithubToken;
-        }
+        request = new Request(`https://${Host}/${pathname}`, request);
+        request.headers.set('host', Host);
 
-        request = new Request(target, request);
-        if (tok) {
-            request.headers.set('authorization', `token ${tok}`);
+        if (token) {
+            request.headers.set('authorization', `token ${token}`);
         }
 
         return await fetch(request);
