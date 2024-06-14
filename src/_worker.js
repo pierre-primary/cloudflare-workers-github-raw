@@ -35,7 +35,8 @@ Commercial support is available at
 `;
 
 
-function chooseUrl(urls = []) {
+function chooseUrl(urls) {
+    urls = urls.split(',');
     switch (urls.length) {
         case 0:
             return '';
