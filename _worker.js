@@ -46,7 +46,7 @@ function trimStartSlashs(src, offset = 0) {
 
 function convertToArray(src) {
     if (src instanceof Array) return src;
-    if (typeof src === 'string') return src.replace(/^\s*\[|\]\s*$/g, '').split(/[,;"|\s\t\r\n]+/);
+    if (typeof src === 'string') return src.replace(/^\s*\[|\]\s*$/g, '').split(/[,;"'|\s\t\r\n]+/);
     return [];
 }
 
