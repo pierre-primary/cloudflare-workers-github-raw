@@ -5,9 +5,9 @@
  * @link：https://github.com/pierre-primary/cloudflare-workers-github-raw
  */
 
-let PathPrefix = '';            // 路径前缀；用于限定指定账户（如 pierre-primary）或仓库（如 pierre-primary/cloudflare-workers-github-raw）的访问;
-let Token = '';                 // 本站令牌；提示：推荐使用 Workers 的环境变量
-let GithubToken = '';           // GitHub 令牌；提示：设置后不要提交到仓库 ！！！；同上
+let PathPrefix = '';    // 路径前缀；用于限定指定账户（如 pierre-primary）或仓库（如 pierre-primary/cloudflare-workers-github-raw）的访问;
+let Token = '';         // 本站令牌；提示：推荐使用 Workers 的环境变量
+let GithubToken = '';   // GitHub 令牌；提示：设置后不要提交到仓库 ！！！；同上
 
 const welcome = `<!DOCTYPE html>
 <html>
@@ -34,8 +34,6 @@ Commercial support is available at
 </html>
 `;
 
-
-
 export default {
     /**
      * @param {Request} request 请求
@@ -58,12 +56,11 @@ export default {
                             return await fetch(env.HomePage);
                     }
                 } catch {
-                    return new Response("Internal Server Error", { status: 500 });
+                    return new Response('Internal Server Error', { status: 500 });
                 }
             }
 
-            if (request.headers.get('if-none-match') === "HelloNginx")
-                return new Response(null, { status: 304 });
+            if (request.headers.get('if-none-match') === 'HelloNginx') return new Response(null, { status: 304 });
 
             return new Response(welcome, {
                 headers: {
@@ -104,6 +101,6 @@ export default {
             request.headers.set('authorization', `token ${tok}`);
         }
 
-        return await fetch(request)
+        return await fetch(request);
     },
 };
