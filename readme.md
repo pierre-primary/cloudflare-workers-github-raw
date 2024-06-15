@@ -17,17 +17,18 @@
 
 ### 部署说明
 
-1. 自行搜索 Cloudflare Workers/Pages 的部署方式
-2. 快捷方式
+1. **Cloudflare Workers** 部署：复制 \_worker.js 代码至 Workers 编译面版，保存并部署
 
     [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/pierre-primary/cloudflare-workers-github-raw)
 
+2. **Cloudflare Pages** 部署：Fork 项目后；创建 Pages 时连接 GitHub 一键部署
+
 ### 使用说明
 
--   访问 Url 模板：
+-   Url 模板
 
-    `https://自己的二级域名.pages.dev/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${FILE_PATH}?token=${口令}`
+    > https://自己的二级域名.pages.dev/\${GITHUB_USER}/\${GITHUB_REPO}/\${GITHUB_BRANCH}/\${FILE_PATH}?token=\${口令}
 
--   访问 Url 示例：
+-   Url 示例
 
-    `https://自己的二级域名.pages.dev/pierre-primary/cloudflare-workers-github-raw/main/_worker.js?token=${666666}`
+    > https://自己的二级域名.pages.dev/pierre-primary/cloudflare-workers-github-raw/main/\_worker.js?token=666666
