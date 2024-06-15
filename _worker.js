@@ -1,5 +1,5 @@
 // 多用户 (仓库) 独立 Token 认证表；不建议在此修改
-let AuthTable; // { "user1": "token", "user2/repo1": "token", $NoEmpty: true };
+let AuthTable; // { "user1": "token", "user2/repo1": "token", $Enable: true };
 
 const BaseURL = "https://raw.githubusercontent.com";
 const Welcome = `<!DOCTYPE html>
@@ -28,40 +28,31 @@ Commercial support is available at
 `;
 
 function parseTable(pattern, old = null) {
-	let src = pattern;
-	if (!src || typeof src !== "string")
-		return old ? { ...old, $Lock: true } : { $NoEmpty: true, $Lock: true };
+	if (!pattern || typeof pattern !== "string")
+		return { __proto__: null, ...(old || {}), $Lock: true };
 
+	const clean = pattern.startsWith(":");
+	const src = clean ? pattern.substring(1) : pattern;
+
+	const table =
+		clean || !old ? { __proto__: null } : { __proto__: null, ...old };
+
+	let match;
 	const regex = /([^:;]+):([^;]+)(?:;|$)/g;
+	for (match of src.matchAll(regex)) table[match[1]] = match[2];
 
-	const clean = src.startsWith(":");
-	if (clean) src = src.substring(1);
-
-	const table = clean ? {} : old || {};
-	let noempty = false;
-	for (const match of src.matchAll(regex)) {
-		table[match[1]] = match[2];
-		if (!noempty) noempty = true;
-	}
-	// 空和非空都记录，避免查找原型链
-	table.$NoEmpty = table.$NoEmpty || noempty;
+	table.$Enable = !!(table.$Enable || match);
 	table.$Lock = true;
-
 	return table;
 }
 
 function getToken(pathname, src) {
-	let table = AuthTable;
-	if (!table || !table.$Lock) AuthTable = table = parseTable(src, table);
-	if (!table.$NoEmpty) return;
+	if (!AuthTable || !AuthTable.$Lock) AuthTable = parseTable(src, AuthTable);
+	if (!AuthTable.$Enable) return;
 
 	const regex = /^(([^\/]{1,32})\/+[^\/]{1,32})(?:\/|$)/;
-
 	const match = pathname.match(regex);
-	if (!match) return;
-
-	if (table[match[1]]) return table[match[1]];
-	return table[match[2]];
+	return match && (AuthTable[match[1]] || AuthTable[match[2]]);
 }
 
 const etag = btoa("HelloNginx");
