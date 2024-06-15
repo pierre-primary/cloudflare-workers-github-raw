@@ -87,7 +87,9 @@ export default {
     async fetch(request, env) {
         const url = new URL(request.url);
 
-        let pathname = url.pathname.replace(/^\/+/, '');
+        const regex = /^\/+/;
+
+        let pathname = url.pathname.replace(regex, '');
         if (pathname) {
             let token = url.searchParams.get('token');
             if (env.Token && env.Token !== token) {
