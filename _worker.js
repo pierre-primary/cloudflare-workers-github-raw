@@ -28,19 +28,6 @@ Commercial support is available at
 </html>
 `;
 
-function respNginx(request) {
-    const etag = 'HelloNginx';
-    if (request.headers.get('if-none-match') === etag)
-        return new Response(null, { status: 304 });
-    return new Response(Welcome, {
-        headers: {
-            'content-type': 'text/html;charset=utf-8',
-            'cache-control': 'max-age=86400', // 强制缓存
-            'etag': etag, // 协商缓存
-        },
-    });
-}
-
 function parseTable(src, old = {}) {
     if (!src || typeof src !== 'string')
         return old ? { ...old, $Lock: true } : { $NoEmpty: true, $Lock: true };
@@ -84,6 +71,19 @@ function getToken(pathname, src) {
     if (table[match[1]]) return table[match[1]];
 
     return table[match[2]];
+}
+
+function respNginx(request) {
+    const etag = 'HelloNginx';
+    if (request.headers.get('if-none-match') === etag)
+        return new Response(null, { status: 304 });
+    return new Response(Welcome, {
+        headers: {
+            'content-type': 'text/html;charset=utf-8',
+            'cache-control': 'max-age=86400', // 强制缓存
+            'etag': etag, // 协商缓存
+        },
+    });
 }
 
 export default {
