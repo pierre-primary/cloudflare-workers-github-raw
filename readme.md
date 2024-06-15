@@ -9,3 +9,7 @@
 | AuthTable  |                                | 授权表              | "user1@token1;user2/repo1@token2;user2/repo2@token3" |
 | HomeMode   | default<br>rewrite<br>redirect | 主页伪装模式        | "default"                                            |
 | HomePage   |                                | 主页 (必须带协议头) | "https://www.baidu.com"                              |
+
+访问 Url 模板：`https://自己的二级域名.pages.dev/${GITHUB_USER}/${GITHUB_REPO}/${GITHUB_BRANCH}/${FILE_PATH}?token=${口令}`
+
+访问 Url 示例：`https://自己的二级域名.pages.dev/pierre-primary/cloudflare-workers-github-raw/main/_worker.js?token=${666666}`
