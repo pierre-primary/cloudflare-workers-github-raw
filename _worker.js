@@ -43,7 +43,7 @@ function respNginx(request) {
 
 function parseTable(src) {
     const CONCAT = '@', DELIM = ';';
-    let table = {}, concat, delim;
+    let table = {}, noempty = false, concat, delim;
     for (let i = 0; i < src.length;) {
         if ((concat = src.indexOf(CONCAT, i)) <= i)
             break; // Empty Key
@@ -53,10 +53,11 @@ function parseTable(src) {
 
         if (delim > concat + 1) { // Non-Empty Value
             table[src.substring(i, concat)] = src.substring(concat + 1, delim);
-            if (!table.$NoEmpty) table.$NoEmpty = true;
+            if (!noempty) noempty = true;
         }
         i = delim + 1;
     }
+    table.$NoEmpty = noempty; // 空和非空都记录，避免查找原型链
     table.$Lock = true;
     return table;
 }
