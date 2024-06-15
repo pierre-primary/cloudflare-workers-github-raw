@@ -11,7 +11,7 @@
 | 环境变量名 | 可选值                                        | 说明         | 示例                                                 |
 | ---------- | --------------------------------------------- | ------------ | ---------------------------------------------------- |
 | Token      | URL 规范允许的字符                            | 口令         | "666666"                                             |
-| AuthTable  | URL 规范允许的字符<br>分隔符 `@` `;` 除外     | 授权表       | "user1@token1;user2/repo1@token2;user2/repo2@token3" |
+| AuthTable  | URL 规范允许的字符<br>分隔符 `:` `;` 除外     | 授权表       | "user1:token1;user2/repo1:token2;user2/repo2:token3" |
 | HomeMode   | default<br>rewrite<br>redirect                | 主页伪装模式 | "default"                                            |
 | HomePage   | 网址；必须带协议头<br>`https://` 或 `http://` | 主页         | "https://www.baidu.com"                              |
 
