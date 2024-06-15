@@ -41,10 +41,17 @@ function respNginx(request) {
     });
 }
 
-function parseTable(src) {
+function parseTable(src, old = {}) {
+    if (!src || typeof src !== 'string')
+        return old ? { ...old, $Lock: true } : { $NoEmpty: true, $Lock: true };
+
     const CONCAT = '@', DELIM = ';';
-    let table = {}, noempty = false, concat, delim;
-    for (let i = 0; i < src.length;) {
+
+    let clean = src.startsWith(":");
+    let table = clean ? {} : old || {};
+
+    let noempty = !!table.$NoEmpty, concat, delim;
+    for (let i = clean ? 1 : 0; i < src.length;) {
         if ((concat = src.indexOf(CONCAT, i)) <= i)
             break; // Empty Key
 
@@ -57,17 +64,15 @@ function parseTable(src) {
         }
         i = delim + 1;
     }
-    table.$NoEmpty = noempty; // 空和非空都记录，避免查找原型链
+    table.$NoEmpty = noempty || table.$NoEmpty; // 空和非空都记录，避免查找原型链
     table.$Lock = true;
     return table;
 }
 
 function getToken(pathname, src) {
     let table = AuthTable;
-    if (!table || !table.$Lock) {
-        AuthTable = table = typeof src === 'string' ?
-            parseTable(src) : { $Lock: true };
-    }
+    if (!table || !table.$Lock)
+        AuthTable = table = parseTable(src);
 
     if (!table.$NoEmpty) return;
 
