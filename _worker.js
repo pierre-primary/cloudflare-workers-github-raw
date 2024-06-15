@@ -42,11 +42,20 @@ function respNginx(request) {
 }
 
 function parseTable(src) {
-    const regex = /([^@;]+)@([^@;]+)(?:;|$)/g;
-    let table = {};
-    for (const match of src.matchAll(regex)) {
-        table[match[1]] = match[2];
-        if (!table.$NoEmpty) table.$NoEmpty = true;
+    const CONCAT = '@', DELIM = ';';
+    let table = {}, concat, delim;
+    for (let i = 0; i < src.length;) {
+        if ((concat = src.indexOf(CONCAT, i)) <= i)
+            break; // Empty Key
+
+        if ((delim = src.indexOf(DELIM, concat + 1)) < 0)
+            delim = src.length; // Last Value
+
+        if (delim > concat + 1) { // Non-Empty Value
+            table[src.substring(i, concat)] = src.substring(concat + 1, delim);
+            if (!table.$NoEmpty) table.$NoEmpty = true;
+        }
+        i = delim + 1;
     }
     table.$Lock = true;
     return table;
