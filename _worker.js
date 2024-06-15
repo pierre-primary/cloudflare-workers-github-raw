@@ -32,27 +32,20 @@ function parseTable(src, old = {}) {
     if (!src || typeof src !== 'string')
         return old ? { ...old, $Lock: true } : { $NoEmpty: true, $Lock: true };
 
-    const CONCAT = '@', DELIM = ';';
+    const regex = /([^@;]+)@([^@;]+)(?:;|$)/g;
 
     let clean = src.startsWith(":");
-    let table = clean ? {} : old || {};
+    if (clean) src = src.substring(1);
 
-    let noempty = !!table.$NoEmpty, concat, delim;
-    for (let i = clean ? 1 : 0; i < src.length;) {
-        if ((concat = src.indexOf(CONCAT, i)) <= i)
-            break; // Empty Key
-
-        if ((delim = src.indexOf(DELIM, concat + 1)) < 0)
-            delim = src.length; // Last Value
-
-        if (delim > concat + 1) { // Non-Empty Value
-            table[src.substring(i, concat)] = src.substring(concat + 1, delim);
-            if (!noempty) noempty = true;
-        }
-        i = delim + 1;
+    let table = clean ? {} : old || {}, noempty = false;
+    for (const match of src.matchAll(regex)) {
+        table[match[1]] = match[2];
+        if (!noempty) noempty = true;
     }
-    table.$NoEmpty = noempty || table.$NoEmpty; // 空和非空都记录，避免查找原型链
+    // 空和非空都记录，避免查找原型链
+    table.$NoEmpty = noempty || table.$NoEmpty;
     table.$Lock = true;
+
     return table;
 }
 
@@ -60,21 +53,20 @@ function getToken(pathname, src) {
     let table = AuthTable;
     if (!table || !table.$Lock)
         AuthTable = table = parseTable(src);
-
     if (!table.$NoEmpty) return;
 
-    const regex = /^(([-\w]{1,32})(?:\/[-\w]{1,32})?)(?:\/|$)/;
-    const match = pathname.match(regex);
+    const regex = /^(([^\/]{1,32})\/+[^\/]{1,32})(?:\/|$)/;
 
+    let match = pathname.match(regex);
     if (!match) return;
 
-    if (table[match[1]]) return table[match[1]];
-
+    if (table[match[1]])
+        return table[match[1]];
     return table[match[2]];
 }
 
+const etag = btoa('HelloNginx');
 function respNginx(request) {
-    const etag = 'HelloNginx';
     if (request.headers.get('if-none-match') === etag)
         return new Response(null, { status: 304 });
     return new Response(Welcome, {
@@ -107,9 +99,8 @@ export default {
             request.headers.set('host', target.host);
 
             token = getToken(pathname, env.AuthTable); // 独立 Token 认证
-            if (token) {
+            if (token)
                 request.headers.set('authorization', `token ${token}`);
-            }
 
             return await fetch(request); // 直接传递响应，保持缓存控制头，部分下载头等功能
         }
