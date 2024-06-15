@@ -59,7 +59,7 @@ Commercial support is available at
 </html>
 `;
 
-const ETag = btoa('HelloNginx');
+const ETag = 'HelloNginx';
 
 function respNginx(request) {
     if (request.headers.get('if-none-match') === ETag)
