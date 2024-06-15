@@ -8,12 +8,12 @@
 
 ### 参数说明
 
-| 环境变量名 | 可选值                                         | 说明         | 示例                                                 |
-| ---------- | ---------------------------------------------- | ------------ | ---------------------------------------------------- |
-| Token      | 满足 URL 规范就行                              | 口令         | "666666"                                             |
-| AuthTable  | 除了分隔符外；<br>只允许 `[a-zA-Z0-9_]` 和 `-` | 授权表       | "user1@token1;user2/repo1@token2;user2/repo2@token3" |
-| HomeMode   | default<br>rewrite<br>redirect                 | 主页伪装模式 | "default"                                            |
-| HomePage   | 网址；必须带协议头<br>`https://` 或 `http://`  | 主页         | "https://www.baidu.com"                              |
+| 环境变量名 | 可选值                                        | 说明         | 示例                                                 |
+| ---------- | --------------------------------------------- | ------------ | ---------------------------------------------------- |
+| Token      | URL 规范允许的字符                            | 口令         | "666666"                                             |
+| AuthTable  | URL 规范允许的字符<br>分隔符 `@` `;` 除外     | 授权表       | "user1@token1;user2/repo1@token2;user2/repo2@token3" |
+| HomeMode   | default<br>rewrite<br>redirect                | 主页伪装模式 | "default"                                            |
+| HomePage   | 网址；必须带协议头<br>`https://` 或 `http://` | 主页         | "https://www.baidu.com"                              |
 
 ### 部署说明
 
