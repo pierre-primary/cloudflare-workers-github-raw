@@ -32,7 +32,7 @@ function parseTable(pattern, old = null) {
 	if (!src || typeof src !== "string")
 		return old ? { ...old, $Lock: true } : { $NoEmpty: true, $Lock: true };
 
-	const regex = /([^:;]+):([^:;]+)(?:;|$)/g;
+	const regex = /([^:;]+):([^;]+)(?:;|$)/g;
 
 	const clean = src.startsWith(":");
 	if (clean) src = src.substring(1);
