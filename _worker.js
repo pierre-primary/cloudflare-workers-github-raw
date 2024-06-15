@@ -91,9 +91,8 @@ export default {
 		const pathname = url.pathname.replace(regex, "");
 		if (pathname) {
 			let token = url.searchParams.get("token");
-			if (env.Token && env.Token !== token) {
+			if (env.Token && env.Token !== token)
 				return new Response("Unauthorized", { status: 401 });
-			}
 
 			const target = new URL(pathname, BaseURL);
 			const targetReq = new Request(target, request); // 直接传递请求，保持缓存控制头，部分下载头等功能
