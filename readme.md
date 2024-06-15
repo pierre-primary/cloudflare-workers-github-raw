@@ -17,7 +17,10 @@
 
 ### 部署说明
 
-自行搜索 Cloudflare Workers/Pages 的部署方式
+1. 自行搜索 Cloudflare Workers/Pages 的部署方式
+2. 快捷方式
+
+    [![Deploy to Cloudflare Workers](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/pierre-primary/cloudflare-workers-github-raw)
 
 ### 使用说明
 
