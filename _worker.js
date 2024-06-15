@@ -28,7 +28,7 @@ Commercial support is available at
 </html>
 `;
 
-function parseTable(src, old = {}) {
+function parseTable(src, old = null) {
     if (!src || typeof src !== 'string')
         return old ? { ...old, $Lock: true } : { $NoEmpty: true, $Lock: true };
 
@@ -43,7 +43,7 @@ function parseTable(src, old = {}) {
         if (!noempty) noempty = true;
     }
     // 空和非空都记录，避免查找原型链
-    table.$NoEmpty = noempty || table.$NoEmpty;
+    table.$NoEmpty = table.$NoEmpty || noempty;
     table.$Lock = true;
 
     return table;
@@ -52,7 +52,7 @@ function parseTable(src, old = {}) {
 function getToken(pathname, src) {
     let table = AuthTable;
     if (!table || !table.$Lock)
-        AuthTable = table = parseTable(src);
+        AuthTable = table = parseTable(src, table);
     if (!table.$NoEmpty) return;
 
     const regex = /^(([^\/]{1,32})\/+[^\/]{1,32})(?:\/|$)/;
