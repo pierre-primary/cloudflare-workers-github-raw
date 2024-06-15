@@ -2,37 +2,6 @@
 // 多用户 (仓库) 独立 Token 认证表；不建议在此修改
 let AuthTable; // { "user1": "token", "user2/repo1": "token", $NoEmpty: true };
 
-
-function getToken(pathname, src) {
-    let table = AuthTable;
-    if (!table || !table.$Lock) {
-        if (src) {
-            const regex = /([-\w]{1,32}(?:\/[-\w]{1,32})?)@([-\w]{1,64})(?:;|$)/g;
-            table = src.startsWith(':') ? {} : table || {};
-            for (const match of src.matchAll(regex)) {
-                table.$NoEmpty || (table.$NoEmpty = true);
-                table[match[1]] = match[2];
-            }
-            table.$Lock = true;
-            AuthTable = table;
-        } else {
-            AuthTable = table = { $Lock: true };
-        }
-    }
-
-    if (!table.$NoEmpty) return;
-
-    const regex = /^(([-\w]{1,32})(?:\/[-\w]{1,32})?)(?:\/|$)/;
-    const match = pathname.match(regex);
-
-    if (!match) return;
-
-    if (table[match[1]]) return table[match[1]];
-
-    return table[match[2]];
-}
-
-
 const BaseURL = 'https://raw.githubusercontent.com';
 const Welcome = `<!DOCTYPE html>
 <html>
@@ -59,18 +28,47 @@ Commercial support is available at
 </html>
 `;
 
-const ETag = 'HelloNginx';
-
 function respNginx(request) {
-    if (request.headers.get('if-none-match') === ETag)
+    const etag = 'HelloNginx';
+    if (request.headers.get('if-none-match') === etag)
         return new Response(null, { status: 304 });
     return new Response(Welcome, {
         headers: {
             'content-type': 'text/html;charset=utf-8',
             'cache-control': 'max-age=86400', // 强制缓存
-            'etag': ETag, // 协商缓存
+            'etag': etag, // 协商缓存
         },
     });
+}
+
+function parseTable(src) {
+    const regex = /([^@;]+)@([^@;]+)(?:;|$)/g;
+    let table = {};
+    for (const match of src.matchAll(regex)) {
+        table[match[1]] = match[2];
+        if (!table.$NoEmpty) table.$NoEmpty = true;
+    }
+    table.$Lock = true;
+    return table;
+}
+
+function getToken(pathname, src) {
+    let table = AuthTable;
+    if (!table || !table.$Lock) {
+        AuthTable = table = typeof src === 'string' ?
+            parseTable(src) : { $Lock: true };
+    }
+
+    if (!table.$NoEmpty) return;
+
+    const regex = /^(([-\w]{1,32})(?:\/[-\w]{1,32})?)(?:\/|$)/;
+    const match = pathname.match(regex);
+
+    if (!match) return;
+
+    if (table[match[1]]) return table[match[1]];
+
+    return table[match[2]];
 }
 
 export default {
