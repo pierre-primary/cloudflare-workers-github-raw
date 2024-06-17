@@ -23,6 +23,8 @@
 
 2. **Cloudflare Pages** 部署：Fork 项目后；创建 Pages 时连接 GitHub 一键部署
 
+3. **配置参数**: 如果特殊要求可跳过；复制项目中 vars.tmpl 的内容，粘贴到 Cloudflare 环境变量编辑页，修改为自己的值，保存并重新部署
+
 ### 使用说明
 
 -   Url 模板
