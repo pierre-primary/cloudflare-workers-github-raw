@@ -1,9 +1,10 @@
 {
-  "private": true,
-  "scripts": {
-    "dev": "wrangler dev _worker.js"
-  },
-  "devDependencies": {
-    "wrangler": "^3.0.0"
-  }
+    "private": true,
+    "scripts": {
+        "dev": "wrangler dev _worker.js"
+    },
+    "devDependencies": {
+        "@cloudflare/workers-types": "^4.20240614.0",
+        "wrangler": "^3.61.0"
+    }
 }
