@@ -28,7 +28,7 @@ export default {
         }
 
         // 伪装首页
-        if (env.HomePage)
+        if (env.HomePage) {
             try {
                 switch (env.HomeMode) {
                     case "redirect": // 重定向
@@ -39,6 +39,7 @@ export default {
             } catch {
                 return new Response("Internal Server Error", { status: 500 });
             }
+        }
 
         // 默认首页
         return respNginx(request);
