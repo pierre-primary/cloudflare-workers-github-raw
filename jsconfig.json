@@ -31,12 +31,11 @@
         ]
     },
     "include": [
-        "*.js",
-        "*.ts"
+        "**/*.js",
+        "**/*.ts"
     ],
     "exclude": [
         "node_modules",
-        "dist",
-        ".*"
+        "dist"
     ]
 }
