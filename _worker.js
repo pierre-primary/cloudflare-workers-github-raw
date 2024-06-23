@@ -46,9 +46,9 @@ export default {
 };
 
 /**
- * @param {string} pathname 
- * @param {*} pattern 
- * @returns 
+ * @param {string} pathname
+ * @param {*} pattern
+ * @returns
  */
 function getToken(pathname, pattern) {
     let table = globalThis.AuthTable;
@@ -83,12 +83,11 @@ function parseTable(pattern) {
     return table;
 }
 
-
 const etag = btoa("HelloNginx");
 
 /**
- * @param {Request} request 
- * @returns 
+ * @param {Request} request
+ * @returns
  */
 function respNginx(request) {
     if (request.headers.get("if-none-match") === etag)
@@ -101,7 +100,6 @@ function respNginx(request) {
         },
     });
 }
-
 
 const Welcome = `<!DOCTYPE html>
 <html>
